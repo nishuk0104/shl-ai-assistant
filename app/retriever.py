@@ -35,7 +35,7 @@ def search_assessments(query, top_k=5):
             "remote": item.get("remote"),
             "adaptive": item.get("adaptive"),
             "duration": item.get("duration"),
-            "test_type": item.get("keys", [])
+            "assessment_types": item.get("keys", [])
         })
 
     return results
