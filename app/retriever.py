@@ -1,94 +1,41 @@
 import json
-import faiss
-import numpy as np
 
-from sentence_transformers import SentenceTransformer
-
-
-# Load embedding model
-model = SentenceTransformer(
-    "sentence-transformers/all-MiniLM-L6-v2"
-)
-
-# Load FAISS index
-index = faiss.read_index(
-    "data/shl_faiss.index"
-)
-
-# Load metadata
-with open(
-    "data/shl_metadata.json",
-    "r",
-    encoding="utf-8"
-) as f:
-
-    metadata = json.load(f)
+with open("data/shl_catalog.json", "r", encoding="utf-8") as f:
+    catalog = json.load(f)
 
 
 def search_assessments(query, top_k=5):
+    query = query.lower()
 
-    # Convert query into embedding
-    query_embedding = model.encode([query])
+    scored = []
 
-    query_embedding = np.array(
-        query_embedding,
-        dtype=np.float32
-    )
+    for item in catalog:
+        text = (
+            item.get("name", "") + " " +
+            item.get("description", "") + " " +
+            " ".join(item.get("keys", []))
+        ).lower()
 
-    # Search FAISS
-    distances, indices = index.search(
-        query_embedding,
-        top_k
-    )
+        score = 0
+
+        for word in query.split():
+            if word in text:
+                score += 1
+
+        scored.append((score, item))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
 
     results = []
 
-    for i in range(len(indices[0])):
-
-        score = float(distances[0][i])
-
-        idx = indices[0][i]
-
-        assessment = metadata[idx]
-
-        # Bonus ranking logic
-        bonus = 0
-
-        query_lower = query.lower()
-
-        if (
-            "java" in query_lower and
-            "java" in assessment["name"].lower()
-        ):
-            bonus += 0.2
-
-        if (
-            "python" in query_lower and
-            "python" in assessment["name"].lower()
-        ):
-            bonus += 0.2
-
-        if (
-            "communication" in query_lower and
-            "communication" in assessment["description"].lower()
-        ):
-            bonus += 0.2
-
-        final_score = score + bonus
-
+    for score, item in scored[:top_k]:
         results.append({
-            "score": final_score,
-            "name": assessment["name"],
-            "url": assessment["url"],
-            "description": assessment["description"],
-            "assessment_types": assessment["assessment_types"]
+            "name": item.get("name"),
+            "url": item.get("link"),
+            "remote": item.get("remote"),
+            "adaptive": item.get("adaptive"),
+            "duration": item.get("duration"),
+            "test_type": item.get("keys", [])
         })
-
-    # Sort by improved score
-    results = sorted(
-        results,
-        key=lambda x: x["score"],
-        reverse=True
-    )
 
     return results
