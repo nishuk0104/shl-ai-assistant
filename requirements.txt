@@ -1,4 +1,15 @@
 fastapi
 uvicorn
-openai
+pydantic
+numpy
+pandas
+scikit-learn
+scipy
 faiss-cpu
+sentence-transformers
+transformers
+torch
+requests
+python-dotenv
+openai
+huggingface_hub
