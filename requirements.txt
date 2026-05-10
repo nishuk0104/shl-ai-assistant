@@ -1,7 +1,12 @@
 fastapi
 uvicorn
-pydantic
-requests
 python-dotenv
 openai
-numpy
+numpy==1.26.4
+faiss-cpu
+sentence-transformers
+torch
+transformers
+scikit-learn
+pydantic
+requests
